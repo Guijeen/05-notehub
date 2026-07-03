@@ -33,7 +33,8 @@ function App() {
     }
   }, [data]);
 
-  const totalPages = data?.totalPages;
+  const totalPages: number = data?.totalPages || 0;
+  const movieResults = data?.results || [];
 
   return (
     <>
@@ -49,7 +50,7 @@ function App() {
           previousLabel="←"
         />
       )}
-      <MovieGrid movies={data?.results || []} onSelect={setSelectMovie} />
+      <MovieGrid movies={movieResults} onSelect={setSelectMovie} />
       {isFetching && <Loader />}
       {isError && <ErrorMessage />}
       <Toaster />
