@@ -33,12 +33,14 @@ function App() {
     }
   }, [data]);
 
+  const totalPages = data?.totalPages;
+
   return (
     <>
       <SearchBar onSubmit={setqueryMovies} page={setPage} />
-      {data?.totalPages > 1 && (
+      {totalPages > 1 && (
         <Pagination
-          pageCount={data?.totalPages}
+          pageCount={totalPages}
           pageRangeDisplayed={5}
           marginPagesDisplayed={1}
           onPageChange={({ selected }) => setPage(selected + 1)}
