@@ -8,45 +8,48 @@ import toast, { Toaster } from "react-hot-toast";
 import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
 import MovieModal from "../MovieModal/MovieModal";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import Pagination from "../Pagination/Pagination";
 
 function App() {
   const notify = () => toast("No movies found for your request");
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [loader, setLoader] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<boolean>(false);
   const [isSelectMovie, setSelectMovie] = useState<Movie | null>(null);
   const closeModale = () => setSelectMovie(null);
 
-  const handleOrder = async (search: string) => {
-    try {
-      setLoader(true);
-      setMovies([]);
-      setErrorMessage(false);
+  const [queryMovies, setqueryMovies] = useState("");
 
-      const results = await fetchMovies(search);
-      if (results.length > 0) {
-        setMovies(results);
-      } else {
-        setMovies([]);
-        notify();
-      }
+  const [page, setPage] = useState(1);
 
-      console.log("Order received from:", results);
-    } catch (error) {
-      setErrorMessage(true);
-      console.log(error);
-    } finally {
-      setLoader(false);
-      console.log("fin");
+  const { data, isFetching, isError } = useQuery({
+    queryKey: ["movies", queryMovies, page],
+    queryFn: () => fetchMovies(queryMovies, page),
+    enabled: queryMovies != "",
+  });
+
+  useEffect(() => {
+    if (data && data.results.length === 0) {
+      notify();
     }
-  };
+  }, [data]);
 
   return (
     <>
-      <SearchBar onSubmit={handleOrder} />
-      <MovieGrid movies={movies} onSelect={setSelectMovie} />
-      {loader && <Loader />}
-      {errorMessage && <ErrorMessage />}
+      <SearchBar onSubmit={setqueryMovies} page={setPage} />
+      {data?.totalPages > 1 && (
+        <Pagination
+          pageCount={data?.totalPages}
+          pageRangeDisplayed={5}
+          marginPagesDisplayed={1}
+          onPageChange={({ selected }) => setPage(selected + 1)}
+          forcePage={page - 1}
+          nextLabel="→"
+          previousLabel="←"
+        />
+      )}
+      <MovieGrid movies={data?.results || []} onSelect={setSelectMovie} />
+      {isFetching && <Loader />}
+      {isError && <ErrorMessage />}
       <Toaster />
       {isSelectMovie && (
         <MovieModal onClose={closeModale} movie={isSelectMovie} />
