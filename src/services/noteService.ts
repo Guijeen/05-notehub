@@ -15,12 +15,8 @@ notehubApi.interceptors.request.use((config) => {
 
 export interface FetchNotesResponse {
   notes: Note[];
-  totalNotes: number;
   totalPages: number;
-  currentPage: number;
-  perPage: number;
 }
-
 export interface FetchNotesParams {
   page: number;
   perPage: number;

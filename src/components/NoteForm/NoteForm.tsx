@@ -1,15 +1,12 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import type { FormikHelpers } from "formik";
 import * as Yup from "yup";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createNote } from "../../services/noteService";
 import type { CreateNotePayload } from "../../services/noteService";
 import type { NoteTag } from "../../types/note";
 import css from "./NoteForm.module.css";
 
 interface NoteFormProps {
-  onSubmit: (
-    values: CreateNotePayload,
-    formikHelpers: FormikHelpers<CreateNotePayload>,
-  ) => void;
   onCancel: () => void;
 }
 
@@ -30,13 +27,41 @@ const initialValues: CreateNotePayload = {
   tag: "Todo",
 };
 
-export default function NoteForm({ onSubmit, onCancel }: NoteFormProps) {
+export default function NoteForm({ onCancel }: NoteFormProps) {
+  const queryClient = useQueryClient();
+
+  // 1. Мутація тепер живе всередині самої форми
+  const createMutation = useMutation({
+    mutationFn: createNote,
+    onSuccess: () => {
+      // 2. Інвалідація кешу відбувається тут
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      // 3. Закриваємо форму після успішного створення
+      onCancel();
+    },
+    onError: (error) => {
+      console.error("Error creating note:", error);
+    },
+  });
+
+  const handleSubmit = async (
+    values: CreateNotePayload,
+    { resetForm }: { resetForm: () => void },
+  ) => {
+    try {
+      // Використовуємо mutateAsync, щоб Formik розумів статус завантаження
+      await createMutation.mutateAsync(values);
+      resetForm();
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+
   return (
     <Formik
       initialValues={initialValues}
       validationSchema={NoteSchema}
-      // Передаємо values та helpers далі в App.tsx
-      onSubmit={(values, helpers) => onSubmit(values, helpers)}
+      onSubmit={handleSubmit}
     >
       {({ isSubmitting }) => (
         <Form className={css.form}>
@@ -85,9 +110,11 @@ export default function NoteForm({ onSubmit, onCancel }: NoteFormProps) {
             <button
               type="submit"
               className={css.submitButton}
-              disabled={isSubmitting}
+              disabled={isSubmitting || createMutation.isPending}
             >
-              {isSubmitting ? "Creating..." : "Create note"}
+              {isSubmitting || createMutation.isPending
+                ? "Creating..."
+                : "Create note"}
             </button>
           </div>
         </Form>
