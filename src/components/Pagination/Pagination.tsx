@@ -1,7 +1,13 @@
+import css from "./Pagination.module.css";
 import ReactPaginateModule from "react-paginate";
 import type { ReactPaginateProps } from "react-paginate";
 import type { ComponentType } from "react";
-import css from "./Pagination.module.css";
+
+interface PaginationProps {
+  pageCount: number;
+  forcePage: number;
+  onPageChange: (selectedItem: { selected: number }) => void;
+}
 
 type ModuleWithDefault<T> = { default: T };
 
@@ -11,38 +17,24 @@ const ReactPaginate = (
   >
 ).default;
 
-interface PaginationProps {
-  pageCount: number;
-  pageRangeDisplayed: number;
-  marginPagesDisplayed: number;
-  onPageChange: (selectedItem: { selected: number }) => void;
-  forcePage: number;
-  nextLabel: string;
-  previousLabel: string;
-}
-
-function Pagination({
+export default function Pagination({
   pageCount,
-  pageRangeDisplayed,
-  marginPagesDisplayed,
-  onPageChange,
   forcePage,
-  nextLabel,
-  previousLabel,
+  onPageChange,
 }: PaginationProps) {
   return (
     <ReactPaginate
+      previousLabel="&lt;"
+      nextLabel="&gt;"
       breakLabel="..."
-      nextLabel={nextLabel}
-      previousLabel={previousLabel}
-      onPageChange={onPageChange}
-      pageRangeDisplayed={pageRangeDisplayed}
-      marginPagesDisplayed={marginPagesDisplayed}
       pageCount={pageCount}
+      marginPagesDisplayed={2}
+      pageRangeDisplayed={5}
+      onPageChange={onPageChange}
       forcePage={forcePage}
-      containerClassName={css.pagination}
+      containerClassName={css.pagination || "pagination"} // Використовуйте класи з вашого .module.css
       activeClassName={css.active}
+      disabledClassName={css.disabled}
     />
   );
 }
-export default Pagination;
