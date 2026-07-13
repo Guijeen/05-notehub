@@ -30,13 +30,10 @@ const initialValues: CreateNotePayload = {
 export default function NoteForm({ onCancel }: NoteFormProps) {
   const queryClient = useQueryClient();
 
-  // 1. Мутація тепер живе всередині самої форми
   const createMutation = useMutation({
     mutationFn: createNote,
     onSuccess: () => {
-      // 2. Інвалідація кешу відбувається тут
       queryClient.invalidateQueries({ queryKey: ["notes"] });
-      // 3. Закриваємо форму після успішного створення
       onCancel();
     },
     onError: (error) => {
@@ -49,7 +46,6 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
     { resetForm }: { resetForm: () => void },
   ) => {
     try {
-      // Використовуємо mutateAsync, щоб Formik розумів статус завантаження
       await createMutation.mutateAsync(values);
       resetForm();
     } catch (err) {

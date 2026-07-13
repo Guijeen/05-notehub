@@ -10,11 +10,9 @@ interface NoteListProps {
 export default function NoteList({ notes }: NoteListProps) {
   const queryClient = useQueryClient();
 
-  // 1. Мутація видалення тепер живе всередині списку
   const deleteMutation = useMutation({
     mutationFn: deleteNote,
     onSuccess: () => {
-      // 2. Інвалідація кешу після успішного видалення
       queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
     onError: (error) => {
@@ -34,9 +32,7 @@ export default function NoteList({ notes }: NoteListProps) {
             <span className={css.tag}>{note.tag}</span>
             <button
               className={css.button}
-              // 3. Викликаємо мутацію прямо тут, передаючи ID нотатки
               onClick={() => deleteMutation.mutate(note.id)}
-              // Блокуємо кнопку саме цієї нотатки, яка зараз видаляється
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending ? "Deleting..." : "Delete"}
