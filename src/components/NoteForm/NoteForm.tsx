@@ -49,7 +49,8 @@ export default function NoteForm({ onCancel }: NoteFormProps) {
       await createMutation.mutateAsync(values);
       resetForm();
     } catch (err) {
-      console.log(err.message);
+      const error = err as Error;
+      console.log(error.message);
     }
   };
 
